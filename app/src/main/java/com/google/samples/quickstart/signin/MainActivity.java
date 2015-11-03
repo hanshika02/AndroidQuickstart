@@ -119,23 +119,15 @@ public class MainActivity extends AppCompatActivity implements
             if (currentPerson != null) {
                 // Show signed-in user's name
                 String name = currentPerson.getDisplayName();
-                String email = null;
                 if(checkAccountsPermission()) {
-                    email = getString(R.string.signed_in_fmt, name);
+                    String email = getString(R.string.signed_in_fmt, name);
+                    Intent intent = new Intent(this, DisplayContactsActivity.class);
+                    intent.putExtra(email, KEY);
+                    startActivity(intent);
+                    updateUI(false);
+
                 }
-                Intent intent = new Intent(this, DisplayContactsActivity.class);
-                intent.putExtra(currentPerson.toString(), KEY);
 
-                startActivity(intent);
-
-
-                mStatus.setText(getString(R.string.signed_in_fmt, name));
-
-                // Show users' email address (which requires GET_ACCOUNTS permission)
-                if (checkAccountsPermission()) {
-                    String currentAccount = Plus.AccountApi.getAccountName(mGoogleApiClient);
-                    ((TextView) findViewById(R.id.email)).setText(currentAccount);
-                }
             } else {
                 // If getCurrentPerson returns null there is generally some error with the
                 // configuration of the application (invalid Client ID, Plus API not enabled, etc).
@@ -143,25 +135,16 @@ public class MainActivity extends AppCompatActivity implements
                 mStatus.setText(getString(R.string.signed_in_err));
             }
 
-            setContentView(R.layout.activity_display_contacts);
-            findViewById(R.id.sign_out_button).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onSignOutClicked();
-                }
-            });
-            // Set button visibility
-//            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-//            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
         } else {
             // Show signed-out message and clear email field
+            if (mGoogleApiClient.isConnected()) {
+                Log.i("sign out is clicked",mGoogleApiClient.toString());
+                Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
+                mGoogleApiClient.disconnect();
+            }
+            Log.i("akeshwar", "this should be between second last and last");
             mStatus.setText(R.string.signed_out);
-            ((TextView) findViewById(R.id.email)).setText("");
-
-            // Set button visibility
-//            findViewById(R.id.sign_in_button).setEnabled(true);
-//            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-//            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
+//            ((TextView) findViewById(R.id.email)).setText("");
         }
     }
 
@@ -343,13 +326,8 @@ public class MainActivity extends AppCompatActivity implements
     // [START on_click]
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.sign_in_button:
-                onSignInClicked();
-                break;
-            case R.id.sign_out_button:
-                onSignOutClicked();
-                break;
+        if (v.getId() == R.id.sign_in_button) {
+            onSignInClicked();
         }
     }
     // [END on_click]
